@@ -23,11 +23,15 @@ def published_posts():
     ).order_by('-pub_date')
 
 
+def paginate_queryset(request, queryset, per_page=POSTS_PER_PAGE):
+    paginator = Paginator(queryset, per_page)
+    page_number = request.GET.get('page')
+    return paginator.get_page(page_number)
+
+
 def index(request):
     post_list = published_posts()
-    paginator = Paginator(post_list, POSTS_PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginate_queryset(request, post_list)
     return render(request, 'blog/index.html', {'page_obj': page_obj})
 
 
@@ -57,9 +61,7 @@ def category_posts(request, category_slug):
         is_published=True,
     )
     post_list = published_posts().filter(category=category)
-    paginator = Paginator(post_list, POSTS_PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginate_queryset(request, post_list)
     return render(
         request,
         'blog/category.html',
@@ -77,9 +79,7 @@ def profile(request, username):
         ).order_by('-pub_date')
     else:
         post_list = published_posts().filter(author=profile_user)
-    paginator = Paginator(post_list, POSTS_PER_PAGE)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginate_queryset(request, post_list)
     return render(request, 'blog/profile.html', {
         'profile': profile_user,
         'page_obj': page_obj,
